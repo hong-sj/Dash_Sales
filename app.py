@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# ### 라이브러리 호출
-
-# In[1]:
-
-
+### 라이브러리 호출
 import pandas as pd
 import numpy as np
 
@@ -19,27 +15,14 @@ import plotly.graph_objects as go
 from plotly.colors import DEFAULT_PLOTLY_COLORS   # chart default colors
 
 
-# ### 데이터 호출
-
-# In[2]:
-
-
-# 상위 폴더로 이동 후 data 폴더로 이동
-# path = '../data/' # 로컬 경로설정
-path = 'data/' # 배로 경로설정
-
-# In[3]:
-
+### 데이터 호출
+path = 'data/'
 
 # 데이터 호출
 df = pd.read_csv(path + 'Sales data/Data.csv')
 
 # 이익(Margin) 생성
 df['Margin'] = df['Revenue'] - df['Cost']
-
-
-# In[4]:
-
 
 # 연도, 월 변수 생성
 df['year'] = df['OrderDate'].str.slice(start = 0, stop = 4)
@@ -48,19 +31,12 @@ df['month'] = df['OrderDate'].str.slice(start = 5, stop = 7)
 df = df.sort_values(by = ['Region','Channel','Category','Item Type','year','month','Gender'])
 
 
-# ### 연도 필터
-
-# In[5]:
-
-
+### 연도 필터
 years = list(df['year'].unique())
 years.sort()
 
 
-# ### Dash
-
-# In[6]:
-
+### App & Layout
 
 # App structure
 app = dash.Dash(__name__)
@@ -117,9 +93,7 @@ app.layout = html.Div([
 ])
 
 
-# In[7]:
-
-
+### Pie
 cols = DEFAULT_PLOTLY_COLORS
 
 ########## Pie's 
@@ -130,10 +104,10 @@ cols = DEFAULT_PLOTLY_COLORS
 
 def update_output(val):
         
-    # reg - unique value's
+    # loop value's
     pies = ['Channel', 'Gender', 'AgeGroup']
     
-    # data by Region
+    # data by channel, gender, agegroup
     figures = []
     
     for i in range(len(pies)):
@@ -167,8 +141,7 @@ def update_output(val):
     return figures[0], figures[1], figures[2]
 
 
-# In[9]:
-
+### Indicator
 
 ########## by Region
 @app.callback([Output('idc_africa',  'figure'), 
@@ -177,8 +150,6 @@ def update_output(val):
                Output('idc_europe',  'figure'), 
                Output('idc_oceania', 'figure')], 
               [Input('id_year', 'value')])
-
-
 
 def update_output(val):
         
@@ -197,24 +168,14 @@ def update_output(val):
         
         trace = go.Indicator(mode = 'number+delta',
                              value = values,
-                             number = dict(#prefix = '$',
-                                           font_size = 35   ### font size fixed (안하면 반응형으로 크기 제각각)
-                                           ),
-                             
-                             # Indicator number+delta 하면 차트 기본이 delta = value - delta(reference value) 로 계산됨.
-                             # 그래서 delta(reference value) = deltas 말고 values-deltas 로 선언
-                             # 인디케이터 차트 자체가 일반적으로 당월/전월대비 구조라서 차트 개발할 때 아예 저렇게 계산되도록 넣은 듯
-                             
+                             number = dict(font_size = 35),   # font size fixed (안하면 반응형으로 크기 제각각)
                              delta = dict(reference = values - deltas,
                                           font_size = 20,
                                           relative = False,
-                                          increasing_color = '#3078b4',
-                                          increasing_symbol = '',
-                                          decreasing_color = '#d13b40',
-                                          decreasing_symbol = '',
+                                          increasing_color = '#3078b4', increasing_symbol = '',
+                                          decreasing_color = '#d13b40', decreasing_symbol = '',
                                           position = 'top'),
                              title = dict(text = reg[i], font_size = 20)
-                             #title = dict(text = reg[i] + "<br> <span style='font-size:0.5em;color:gray'>(Margin/Revenue)</span>", font_size = 20)
                             )
         data = [trace]
         
@@ -225,9 +186,7 @@ def update_output(val):
     return figures[0], figures[1], figures[2], figures[3], figures[4]
 
 
-# In[10]:
-
-
+### Bar
 @app.callback(Output('country', 'figure'), [Input('id_year', 'value')])
 
 def update_output(val):
@@ -250,7 +209,7 @@ def update_output(val):
                    y = df_con['Revenue'],
                    text = df_con['text'],
                    texttemplate = '%{text}', 
-                   hoverinfo = 'text',
+                   hoverinfo = 'text'
                    )
 
     data = [trace]
@@ -258,29 +217,15 @@ def update_output(val):
     layout = go.Layout(title = 'Country (Top 10)',
                        # title_x=0,
                        title_y=0.8,
-                       height=310, # margin=dict(l=70, r=70, b=70, t=70)
+                       height=310
                       )
     
-    fig = go.Figure(data, layout)
     figure = {'data': data, 'layout': layout}
 
     return figure
 
 
-
-
-
-# fig.update_layout(
-#     title={
-#         'text': "Plot Title",
-#         'y':0.9,
-#         'x':0.5,
-#         'xanchor': 'center',
-#         'yanchor': 'top'})
-
-
-# In[11]:
-
+### Line
 
 ### by YearMonth
 @app.callback(Output('line', 'figure'), [Input('id_year', 'value')])
@@ -302,33 +247,26 @@ def update_output(val):
                                  hovertemplate = '%{text}',
                                  mode = 'lines+markers',
                                  marker = dict(size = 10),
-                                 name = yr
-                               ))
+                                 name = yr))
     data = traces
     
     layout = go.Layout(title = 'Revenue Trend (Monthly)',
-                       # tick0 = 첫 번째 눈금의 배치 설정 (dtick과 함께 사용)
-                       # dtick = 눈금 사이의 간격 설정
+                       # tick0 = 첫 번째 눈금의 배치 설정 (dtick과 함께 사용), dtick = 눈금 사이의 간격 설정
                        xaxis = dict(title='Month', tickmode='linear', tick0=1, dtick=1, showgrid=False),
-                       # yaxis = dict(title = 'Revenue'),
                        legend = dict(orientation="h",    # option= 'v', 'h'
                                      xanchor="center",   # option= 'auto', 'left', 'center', 'right'
                                      x=0.5,              # x= 0(left), 1 (right)
                                      yanchor="bottom",   # option= 'auto', 'top', 'middle', 'bottom' 
                                      y=-1  #1.1,         # y= 1(top), -1(bottom)
                                     ),
-                       height=320, margin=dict(l=50, r=10)#, b=10, t=30)
-                      )
+                       height=320, margin=dict(l=50, r=10))
     
-    fig = go.Figure(data, layout)
     figure = {'data': data, 'layout': layout}
 
     return figure
 
 
-# In[12]:
-
-
+### Radar
 ### by Year & Category
 @app.callback(Output('radar', 'figure'), [Input('id_year', 'value')])
 
@@ -344,14 +282,12 @@ def update_output(val):
     df_rad.loc[(df_rad['Revenue']>=50000000) & (df_rad['Revenue']<70000000), 'Rank'] = 4
     df_rad.loc[(df_rad['Revenue']>=70000000), 'Rank'] = 5
     
-    
-    # range label
+    # range label - 순위별 범주 생성
     rad_rg=pd.DataFrame([[0, '0'], [1, '< 10M'], [2, '10-30M'], [3, '30-50M'], [4, '50-70M'], [5, '70M <']])
     rad_rg.columns = ['Rank', 'Range']
     
     # Join
     df_radar = df_rad.merge(rad_rg, on = 'Rank', how = 'left')
-    
     
     # Graph
     traces = []
@@ -368,64 +304,53 @@ def update_output(val):
                                       theta = thetas,
                                       name = yr, 
                                       text = rank_R,
-                                      hovertemplate = "Revenue:%{text}"
-                                      ))
+                                      hovertemplate = "Revenue:%{text}"))
     
     data = traces
-    layout = go.Layout(#title = 'Category',
-                       legend = dict(orientation="h",    # option= 'v', 'h'
+    layout = go.Layout(legend = dict(orientation="h",    # option= 'v', 'h'
                                      xanchor="center",   # option= 'auto', 'left', 'center', 'right'
                                      x=0.5,              # x= 0(left), 1 (right)
                                      yanchor="bottom",   # option= 'auto', 'top', 'middle', 'bottom' 
-                                     y=-1,                # y= 1(top), -1(bottom)
+                                     y=-1                # y= 1(top), -1(bottom)
                                     ),
-                       height = 320, # margin=dict(l=20, r=20, b=10, t=70)
-                      )    
+                       height = 320)    
    
-    
-    fig = go.Figure(data, layout)
     figure = {'data': data, 'layout': layout}
 
     return figure
 
 
-# In[13]:
-
-
+### Map
 ### Choropleth Map
 @app.callback(Output('map', 'figure'), [Input('id_year', 'value')])
 
 def update_output(val):
     
-    # CODE
+    # Code3 by Country
     df_code = df.loc[:,['Country','Code3']].drop_duplicates()
 
     # data
     df_map = df[df['year'] == val]
     df_map = df_map.loc[:,['Country','Revenue']].groupby(by = ['Country'], as_index = False).sum()
     
-    # Join map & code
+    # Join map & Code3
     df_m = df_map.merge(df_code, on = 'Country', how = 'left')
     
     # hover_text
     df_m['text'] = df_m['Country'] + ' - Total Revenue : ' +                    round(df_m['Revenue']/1000000,1).astype(str) + 'M'
-    
-    
-    # https://plotly.com/python/reference/choropleth/#choropleth-colorbar-lenmode
     
     trace = go.Choropleth(
                     locations = df_m['Code3'],
                     z = df_m['Revenue'],
                     text = df_m['text'],
                     hoverinfo = 'text',          # 입력한 text만 활성화
-                    colorscale = 'Blues',        # Greens, Reds, Oranges
+                    colorscale = 'Blues',        # color= Greens, Reds, Oranges, ...
                     autocolorscale=False,
                     reversescale=False,
                     marker_line_color='darkgray',
                     marker_line_width=0.5,
                     
                     # colorbar option = legend bar
-                    # colorbar_tickprefix = '$',
                     colorbar_title = 'Revenue ($)',
                     colorbar_thickness=15,      # bar 너비 (default=30)
                     colorbar_len=1,             # bar 길이 (default=1)
@@ -434,24 +359,15 @@ def update_output(val):
                                 )
     
     data = [trace]
-    
     layout = go.Layout(title = 'Sales Map',
                        geo = dict(showframe=False,
                                   showcoastlines=False,
-                                  projection_type = 'equirectangular',
-                                  #showcountries = True        # 지도 경계선
-                                 ),
-                       height=420, margin=dict(l=50, r=50, b=20, t=50)
-                      )
+                                  projection_type = 'equirectangular'),
+                       height=420, margin=dict(l=50, r=50, b=20, t=50))
     
-    
-    fig = go.Figure(data, layout)
     figure = {'data': data, 'layout': layout}
 
     return figure
-
-
-# In[14]:
 
 
 ### Sankey
@@ -492,26 +408,23 @@ def update_output(val):
                   link = dict(source = sources,
                               target = targets,
                               value = values,
-                              color = '#EAEAEA')
-                     )
+                              color = '#EAEAEA'))
     
     data = [trace]
-    
     layout = go.Layout(title = dict(text='Sales Flow', font_size=16),
                        font_size = 15,
-                       height=420, margin=dict(l=50, r=50, b=20, t=50)
-                      )
+                       height=420, margin=dict(l=50, r=50, b=20, t=50))
     
-    fig = go.Figure(data, layout)
     figure = {'data': data, 'layout': layout}
 
     return figure
 
 
-# In[15]:
-
-
+### App Launch
 # Run App
 if __name__=='__main__':
     app.run_server(debug=False)
+
+
+
 
